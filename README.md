@@ -13,6 +13,10 @@ measured rather than assumed.
 coursework (see [References](#references)); this repository extends it with a
 tested package, a convergence study and a precision analysis.
 
+> **AI assistance:** the notebook and report are my original coursework.
+> Refactoring into a package, the tests, CI and the README were done with AI
+> assistance (Claude) and reviewed by me.
+
 | Result | Value |
 |---|---|
 | Measured convergence order of eigenvalues | **4.00** (theory: 4) |
