@@ -91,3 +91,18 @@ def test_numerov_is_fourth_order():
     ]
     slope = np.polyfit(np.log(1 / (ns - 1)), np.log(errs), 1)[0]
     assert 3.7 < slope < 4.3
+
+
+def test_error_bounded_by_search_tolerance():
+    """The last bracket is narrower than 2 * tol, so the error is too (until rounding)."""
+    exact = well_eigenvalue(1, 200)
+    for tol in np.logspace(-4, -9, 6):
+        assert abs(find_eigenvalue(-1, infinite_well, 200, X, tol=tol) - exact) <= 2 * tol
+
+
+def test_rounding_floor_beyond_optimal_grid():
+    """Past N ~ 400, accumulated rounding (not truncation) dominates and the error grows."""
+    exact = well_eigenvalue(1, 200)
+    err = {n: abs(find_eigenvalue(-1, infinite_well, 200, grid(n), tol=1e-15) - exact)
+           for n in (401, 3201)}
+    assert err[3201] > 10 * err[401]

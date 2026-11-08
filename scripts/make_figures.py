@@ -96,8 +96,34 @@ def level_spacing():
     return slope
 
 
+def precision_limits():
+    """Error vs. search tolerance, and the truncation/rounding trade-off in N."""
+    exact = well_eigenvalue(1, G_WELL)
+    tols = np.logspace(-4, -16, 25)
+    err_tol = [abs(find_eigenvalue(-1, infinite_well, G_WELL, X, tol=t) - exact) for t in tols]
+    ns = np.array([51, 101, 201, 401, 801, 1601, 3201])
+    err_n = [abs(find_eigenvalue(-1, infinite_well, G_WELL, grid(n), tol=1e-15) - exact) for n in ns]
+    h = 1 / (ns - 1)
+    fig, axs = plt.subplots(1, 2, figsize=(11, 4))
+    axs[0].loglog(tols, err_tol, "ro", label="error")
+    axs[0].loglog(tols, 2 * tols, "k--", label=r"$2\,\mathrm{tol}$ bound")
+    axs[0].set_xlabel("search tolerance")
+    axs[0].set_ylabel(r"$|\epsilon_1 - \epsilon_1^{\mathrm{exact}}|$")
+    axs[0].set_title(r"Tolerance sweep ($N = 1000$)")
+    axs[0].legend()
+    axs[1].loglog(ns, err_n, "ro", label="error (tol $10^{-15}$)")
+    axs[1].loglog(ns[:4], err_n[1] * (h[:4] / h[1]) ** 4, "k--", label=r"truncation $\propto h^4$")
+    axs[1].set_xlabel(r"grid points $N$")
+    axs[1].set_title("Truncation vs. rounding")
+    axs[1].legend()
+    fig.tight_layout()
+    fig.savefig(OUT / "precision_limits.png", dpi=150)
+    return ns[int(np.argmin(err_n))], min(err_n)
+
+
 if __name__ == "__main__":
     wavefunctions()
     print("convergence order:", round(convergence(), 3))
     uncertainties()
     print("level-spacing slope:", round(level_spacing(), 3))
+    print("best N, error:", precision_limits())

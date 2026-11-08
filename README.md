@@ -8,12 +8,18 @@ eigenvalue search. The solver is validated against closed-form results for an
 infinite square well and a harmonic oscillator, and its convergence order is
 measured rather than assumed.
 
+**Author:** Rafael Simonsohn · **Full write-up:** [docs/report.pdf](docs/report.pdf)
+(method, discussion and figures, October 2026) · **Origin:** computational-lab
+coursework (see [References](#references)); this repository extends it with a
+tested package, a convergence study and a precision analysis.
+
 | Result | Value |
 |---|---|
 | Measured convergence order of eigenvalues | **4.00** (theory: 4) |
 | Infinite well, $\epsilon_1 \dots \epsilon_{10}$, max relative error | $5 \times 10^{-9}$ |
 | Harmonic, $\epsilon_1 \dots \epsilon_3$, absolute error | $< 2 \times 10^{-7}$ |
 | $\Delta x\,\Delta p$ vs. analytic, max relative error | $4 \times 10^{-5}$ |
+| Best attainable eigenvalue error (truncation meets rounding at $N \approx 400$) | $7 \times 10^{-13}$ |
 
 <p align="center"><img src="results/wavefunctions.png" width="85%"></p>
 
@@ -124,6 +130,19 @@ so the hard walls at $\tilde x = 0, 1$ push them up (a test checks this).
 Both potentials satisfy Heisenberg's bound $\Delta x\,\Delta p \ge \tfrac12$;
 the harmonic ground state saturates it.
 
+### Precision limits
+
+<p align="center"><img src="results/precision_limits.png" width="85%"></p>
+
+* **Tolerance (left):** the final bisection bracket is narrower than twice the
+  tolerance, so the error tracks the $2\,\mathrm{tol}$ bound, in steps, because the step
+  halves discretely ($|\Delta\epsilon_k| = |\Delta\epsilon_0|/2^k$). Below $\mathrm{tol} \approx 10^{-12}$ it
+  flattens at $\sim 3 \times 10^{-12}$ (as in Fig. 2 of the report).
+* **Grid size (right):** the floor is not truncation error. Refining the grid
+  reduces the error as $h^4$ only up to $N \approx 400$; beyond that, more
+  steps accumulate more floating-point rounding and the error *grows*. The
+  optimum ($7 \times 10^{-13}$ at $N = 401$) is where the two error sources meet.
+
 ## 5. Repository layout
 
 ```
@@ -133,10 +152,11 @@ src/schrodinger/   solver package
   observables.py   normalisation, Δx, Δp
   potentials.py    ν(x) for both cases
   analytic.py      closed-form benchmarks
-tests/             pytest suite: eigenvalues, nodes, normalisation, Δx·Δp, convergence order
+tests/             pytest suite: eigenvalues, nodes, normalisation, Δx·Δp, convergence order, precision limits
 scripts/           make_figures.py regenerates results/
 results/           figures used above
 notebooks/         CompLab.ipynb: the original exploratory computation
+docs/report.pdf    the written report
 ```
 
 ## 6. Usage
@@ -159,6 +179,19 @@ from schrodinger import grid, harmonic, eigenvalues
 x = grid(1000)
 print(eigenvalues(3, harmonic, gamma2=1000, x=x, step=0.05, gap=1 / 200))
 ```
+
+## References
+
+1. P. Eastham, M. Mitchison and M. E. Möbius, *Numerical solution of the
+   time-independent 1-d Schrödinger equation*, computational lab script (JS
+   Computation Lab), 2023. Source of the problem set-up, the dimensionless
+   form and the parameter choices.
+2. D. J. Griffiths and D. F. Schroeter, *Introduction to Quantum Mechanics*,
+   3rd ed., Cambridge University Press, 2018. Analytic eigenvalues (§2.2–2.3).
+3. M. R. Roussel, *The particle in a box and the uncertainty principle*,
+   lecture notes, University of Lethbridge.
+4. R. Wang, *Derivative approximated by finite difference*, lecture notes,
+   Harvey Mudd College.
 
 ## License
 
